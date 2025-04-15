@@ -3,4 +3,4 @@
 ## Team Members
 - Jack Piotrowski 
 - Keanna Tennyson
-- Demarco 
+- Demarco Guajardo

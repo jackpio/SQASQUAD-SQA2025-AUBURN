@@ -1,0 +1,20 @@
+#========================
+#SQA_squad-SQA2025-AUBURN
+#created April 14, 2025
+#========================
+
+#!/bin/bash
+
+
+echo "Running Bandit security scan..."
+mkdir -p reports
+
+# Will Run Bandit then changed Python files and finally save it as a  CSV.
+changed_files=$(git diff --cached --name-only --diff-filter=ACM | grep '\.py$')
+
+if [ -n "$changed_files" ]; then
+    bandit -f csv -o reports/bandit_report.csv $changed_files
+    echo "Bandit report saved to reports/bandit_report.csv"
+else
+    echo "No Python files changed. Skipping Bandit scan."
+fi
