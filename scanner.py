@@ -161,7 +161,10 @@ def scanKeys(k_, val_lis):
                 hard_coded_keys.append( val_ )
     return hard_coded_keys    
 
-
+'''
+2nd Overall Method Integrated with Forensics
+By: Jack Piotrowski
+'''
 def scanForSecrets(yaml_d): 
     key_lis, dic2ret_secret   = [], {} 
     parser.getKeyRecursively( yaml_d, key_lis )
@@ -189,7 +192,10 @@ def scanForSecrets(yaml_d):
     logging.info("Secrets list returned.")
     return dic2ret_secret
 
-
+'''
+3rd Overall Method Integrated with Forensics
+By: Demarco Guajardo
+'''
 def scanForOverPrivileges(script_path):
     logging.info("Scan for over-privileged security contexts initiated at {}".format(datetime.now())) # Log (1)
     key_count , privi_dict_return = 0, {} 
@@ -385,7 +391,10 @@ def scanForMissingSecurityContext(path_scrpt):
     # print(dic) 
     return dic 
 
-
+'''
+4th Overall Method Integrated with Forensics
+By: Demarco Guajardo
+'''
 def scanForDefaultNamespace(path_scrpt):
     logging.info("Scan for default namespace initiated at {}".format(datetime.now())) # Log (1)
     dic, lis   = {}, []
@@ -454,7 +463,10 @@ def scanForDefaultNamespace(path_scrpt):
     logging.info("Scan for default namespace completed at {}".format(datetime.now()))  # Log (19)
     return dic 
 
-
+'''
+5th Overall Method Integrated with Forensics
+By: Demarco Guajardo
+'''
 def scanForResourceLimits(path_scrpt):
     logging.info("SARIF result added for line: {}".format(line)) # Log (1)
     dic, lis   = {}, []
@@ -500,7 +512,7 @@ def scanForResourceLimits(path_scrpt):
                     all_values = list( parser.getValuesRecursively(yaml_di)  )
                     logging.info("All values extracted from the YAML: {}".format(all_values))  # Log (11)
                     # print(all_values)
-                    prop_value = constants.YAML_SKIPPING_TEXT 
+                    prop_value = `.YAML_SKIPPING_TEXT 
                     if ( constants.POD_KW in all_values ) :
                         prop_value = constants.POD_KW 
                         lis.append( prop_value )
