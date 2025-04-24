@@ -1,9 +1,8 @@
+#!/bin/sh
 #========================
 #SQA_squad-SQA2025-AUBURN
 #created April 14, 2025
 #========================
-
-#!/bin/bash
 
 
 echo "Running Bandit security scan..."
