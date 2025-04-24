@@ -236,11 +236,11 @@ def find_json_path_keys(json_file, parent_path='', paths=None):
     """The following regular expressions are used to remove elements to construct a VALID json path"""
 
     # app.kubernetes.io/release --> "app.kubernetes.io/release"
-    regex_key_dot = re.compile("([^\s\.]+[.][\S]+)")
+    regex_key_dot = re.compile(r"([^\s\.]+[.][\S]+)")
     # app.kubernetes.io/release --> "app*kubernetes*io*release"
-    regex_special_character_removal = re.compile("[^A-Za-z0-9]+")
+    regex_special_character_removal = re.compile(r"[^A-Za-z0-9]+")
     #[3].metadata.name --> .metadata.name
-    regex_remove_initial_index = re.compile("^/?(\[)([0-9])+(\])")
+    regex_remove_initial_index = re.compile(r"^/?(\[)([0-9])+(\])")
     
     if paths is None:
         paths = []   
@@ -299,7 +299,7 @@ Useful in MultiYaml file format but redundant in single yaml Need to merge with 
 
 def update_json_paths (paths):
     #[3].metadata.name --> .metadata.name
-    regex_remove_initial_index = re.compile("^/?(\[)([0-9])+(\])")
+    regex_remove_initial_index = re.compile(r"^/?(\[)([0-9])+(\])")
     json_path =[]
     updated_paths =[]
     remove = ''    
@@ -320,7 +320,11 @@ def show_line_for_paths(  filepath, key): #key_jsonpath_mapping is a global dict
     env_PATH = r"C:\ProgramData\Chocolatey\bin"
     lines = []
     adjusted_lines = []
-    print("This is the mapping for the Key",key,"--->",key_jsonpath_mapping[key]) 
+    if key in key_jsonpath_mapping:
+        print("This is the mapping for the Key", key, "--->", key_jsonpath_mapping[key])
+    else:
+        print(f"[WARN] Key '{key}' not found in key_jsonpath_mapping.")
+        return []
     # for k in key_jsonpath_mapping:
     #     print("Key--->",k, "Value--->",key_jsonpath_mapping[k])
     if key_jsonpath_mapping.get(key) is not None:

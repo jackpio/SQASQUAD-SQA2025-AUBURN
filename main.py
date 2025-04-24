@@ -6,8 +6,9 @@ Source Code to Run Tool on All Kubernetes Manifests
 import scanner 
 import pandas as pd 
 import constants
-
-//Adding testing comment to test githook on our actual REPO - Jack Piotrowski
+import typer
+from pathlib import Path
+import sys
 
 def getCountFromAnalysis(ls_):
     list2ret           = []
@@ -48,21 +49,23 @@ def getCountFromAnalysis(ls_):
     return list2ret
 
 
-def main(directory: Path = typer.Argument(..., exists=True, help="Absolute path to the folder than contains Kubernetes manifests"),
-         ):
+def main():
     """
     Run KubeSec in a Kubernetes directory and get results in a CSV file.
 
     """
-    content_as_ls, sarif_json   = scanner.runScanner( directory )
-    
-    with open("SLIKUBE.sarif", "w") as f:
-      f.write(sarif_json)
+    if len(sys.argv) > 1:
+        directory_path = sys.argv[1]
+    else:
+        directory_path = "/home/TEST_ARTIFACTS"
 
-    df_all          = pd.DataFrame( getCountFromAnalysis( content_as_ls ) )
-    outfile = Path(directory, "slikube_results.csv")
+    content_as_ls, sarif_json = scanner.runScanner(directory_path)
 
-    df_all.to_csv( outfile, header= constants.CSV_HEADER , index=False, encoding= constants.CSV_ENCODING )
+    with open("/results/SLIKUBE.sarif", "w") as f:
+        f.write(sarif_json)
+
+    df_all = pd.DataFrame(getCountFromAnalysis(content_as_ls))
+    df_all.to_csv("/results/slikube_results.csv", header=constants.CSV_HEADER, index=False, encoding=constants.CSV_ENCODING)
 
 
 if __name__ == '__main__':
