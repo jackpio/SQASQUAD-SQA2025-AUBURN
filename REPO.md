@@ -1,7 +1,7 @@
 This details project duties/activities:
 Please review the Activities_Report report attached for more detail and screenshots for each group member's activities.
 
-[Activities_Report.docx](https://github.com/user-attachments/files/19925106/Activities_Report.docx)
+[Activities_Report.docx](https://github.com/user-attachments/files/19925199/Activities_Report.docx)
 
 Keanna Tennyson:
   - Githook creation
