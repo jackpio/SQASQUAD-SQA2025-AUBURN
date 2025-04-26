@@ -56,6 +56,7 @@ slikube_UNLISTED_05 =  ReportingDescriptor(id='SLIKUBE_UNLISTED_05',name=" Use o
 run.tool.driver.rules.append(slikube_UNLISTED_05)
 
 #Adding comment for Bandit testing
+#Adding comment for Bandit testing
 
 '''Following lists are used to check the statistics of analyzed files such as invalid, weird and valid k8s and helm charts'''
 
