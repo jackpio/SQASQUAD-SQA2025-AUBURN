@@ -63,9 +63,6 @@ weird_yaml = []
 helm_chart = []
 k8s_yaml =[]
 
-# Initialize the logging object
-logger2 = giveMeLoggingObject()
-
 def getYAMLFiles(path_to_dir):
     valid_  = []
     for root_, dirs, files_ in os.walk( path_to_dir ):
@@ -169,30 +166,31 @@ def scanKeys(k_, val_lis):
 #Logging Author: Jack Piotrowski
 #Made sure to not log the actual passwords, just want to alert logging system if a password is found
 def scanForSecrets(yaml_d):
+    logger = giveMeLoggingObject()
     key_lis, dic2ret_secret   = [], {}
     parser.getKeyRecursively( yaml_d, key_lis )
     '''
     if you are using `parser.getKeyRecursively` to get all keys , you need to do some trnasformation to get the key names
     as the output is a list of tuples so, `[(k1, v1), (k2, v2), (k3, v3)]`
     '''
-    logger2.info("Scan for secrets initiated at {}".format(datetime.now()))
+    logger.info("Scan for secrets initiated at {}".format(datetime.now()))
     for key_data  in key_lis:
         key_     = key_data[0]
         value_list = []
         parser.getValsFromKey( yaml_d, key_ , value_list )
-        logger2.info("Scanning for hard-coded usernames.")
+        logger.info("Scanning for hard-coded usernames.")
         unameList = scanUserName( key_, value_list  )
         # print(unameList)
-        logger2.info("Scanning for hard-coded passwords.")
+        logger.info("Scanning for hard-coded passwords.")
         passwList = scanPasswords( key_, value_list  )
-        logger2.info("Scanning for hard-coded keys.")
+        logger.info("Scanning for hard-coded keys.")
         keyList   = scanKeys( key_, value_list )
         # print(keyList)
         if( len(unameList) > 0  )  or ( len(passwList) > 0  ) or ( len(keyList) > 0  ) :
             dic2ret_secret[key_] =  ( unameList, passwList, keyList )
-            logger2.info("Hard-coded secrets found!")
+            logger.info("Hard-coded secrets found!")
     # print(dic2ret_secret)
-    logger2.info("Secrets list returned.")
+    logger.info("Secrets list returned.")
     return dic2ret_secret
 
 '''
@@ -200,19 +198,20 @@ def scanForSecrets(yaml_d):
 By: Demarco Guajardo
 '''
 def scanForOverPrivileges(script_path):
-    logger2.info("Scan for over-privileged security contexts initiated at {}".format(datetime.now())) # Log (1)
+    logger = giveMeLoggingObject()
+    logger.info("Scan for over-privileged security contexts initiated at {}".format(datetime.now())) # Log (1)
     key_count , privi_dict_return = 0, {}
     kind_values = []
     checkVal = parser.checkIfValidK8SYaml( script_path )
     if(checkVal):
-        logger2.info("Valid Kubernetes YAML detected: {}".format(script_path)) # Log (2)
+        logger.info("Valid Kubernetes YAML detected: {}".format(script_path)) # Log (2)
         dict_as_list = parser.loadMultiYAML( script_path )
         yaml_dict    = parser.getSingleDict4MultiDocs( dict_as_list )
-        logger2.info("YAML converted to a single dictionary.") # Log (3)
+        logger.info("YAML converted to a single dictionary.") # Log (3)
         # print(yaml_dict.keys())
         key_lis   = []
         parser.getKeyRecursively(yaml_dict, key_lis)
-        logger2.info("Keys extracted: {}".format(key_lis)) # Log (4)
+        logger.info("Keys extracted: {}".format(key_lis)) # Log (4)
         # print('KEY LIST ALL-------------------------------------')
         # print(key_lis)
         '''
@@ -220,13 +219,13 @@ def scanForOverPrivileges(script_path):
         as the output is a list of tuples so, `[(k1, v1), (k2, v2), (k3, v3)]`
         '''
         just_keys = [x_[0] for x_ in key_lis]
-        logger2.info("Processed keys: {}".format(just_keys)) # Log (5)
+        logger.info("Processed keys: {}".format(just_keys)) # Log (5)
         # print('JUST KEYS ALL -----------------------------------------------------')
         # print(just_keys)
         # just_keys = list( np.unique( just_keys )  )
         if ( constants.KIND_KEY_NAME in just_keys ):
             parser.getValsFromKey( yaml_dict, constants.KIND_KEY_NAME, kind_values )
-            logger2.info("Kind values found: {}".format(kind_values)) # Log (6)
+            logger.info("Kind values found: {}".format(kind_values)) # Log (6)
         '''
         For the time being Kind:DeamonSet is not a legit sink because they do not directly provision deplyoments
         '''
@@ -234,25 +233,25 @@ def scanForOverPrivileges(script_path):
         if ( constants.PRIVI_KW in just_keys ) and ( constants.DEAMON_KW not in kind_values  ) :
             privilege_values = []
             parser.getValsFromKey( yaml_dict, constants.PRIVI_KW , privilege_values )
-            logger2.info("Privilege values found: {}".format(privilege_values)) # Log (7)
+            logger.info("Privilege values found: {}".format(privilege_values)) # Log (7)
             # print(privilege_values)
             for value_ in privilege_values:
                     if value_ == True:
                         key_lis_holder = parser.keyMiner(yaml_dict, value_ )
-                        logger2.info("Over-privileged context detected.") # Log (8)
+                        logger.info("Over-privileged context detected.") # Log (8)
                         # print( key_lis_holder )
                         if(constants.CONTAINER_KW in key_lis_holder) and (constants.SECU_CONT_KW in key_lis_holder) and (constants.PRIVI_KW in key_lis_holder):
                             key_count += 1
                             privi_dict_return[key_count] = value_, key_lis_holder
                             line_number = parser.show_line_for_paths(script_path, constants.PRIVI_KW)
-                            logger2.info("Line numbers for privileged context occurrences: {}".format(line_number)) # Log (9)
+                            logger.info("Line numbers for privileged context occurrences: {}".format(line_number)) # Log (9)
                             for line in line_number:
                                 result= Result(rule_id='SLIKUBE_11',rule_index= 10, level='error',attachments = [] ,message=Message(text=" Privileged securityContext"))
                                 location = Location(physical_location=PhysicalLocation(artifact_location=ArtifactLocation(uri=script_path),region = Region(start_line =line)))
                                 result.locations = [location]
                                 run.results.append(result)
-                                logger2.info("SARIF result added for line: {}".format(line)) # Log (10)
-    logger2.info("Scan for over-privileged security contexts completed at {}".format(datetime.now())) # Log (11)
+                                logger.info("SARIF result added for line: {}".format(line)) # Log (10)
+    logger.info("Scan for over-privileged security contexts completed at {}".format(datetime.now())) # Log (11)
     return privi_dict_return
 
 def getItemFromSecret( dict_sec, pos ):
@@ -399,71 +398,72 @@ def scanForMissingSecurityContext(path_scrpt):
 By: Demarco Guajardo
 '''
 def scanForDefaultNamespace(path_scrpt):
-    logger2.info("Scan for default namespace initiated at {}".format(datetime.now())) # Log (1)
+    logger = giveMeLoggingObject()
+    logger.info("Scan for default namespace initiated at {}".format(datetime.now())) # Log (1)
     dic, lis   = {}, []
     if ( parser.checkIfValidK8SYaml( path_scrpt )  ):
-        logger2.info("Valid Kubernetes YAML detected: {}".format(path_scrpt)) # Log (2)
+        logger.info("Valid Kubernetes YAML detected: {}".format(path_scrpt)) # Log (2)
         cnt = 0
         dict_as_list = parser.loadMultiYAML( path_scrpt )
-        logger2.info("Loaded YAML as a list of dictionaries.") # Log (3)
+        logger.info("Loaded YAML as a list of dictionaries.") # Log (3)
         yaml_di      = parser.getSingleDict4MultiDocs( dict_as_list )
-        logger2.info("Converted YAML list to a single dictionary.") # Log (4)
+        logger.info("Converted YAML list to a single dictionary.") # Log (4)
         nspace_vals  = []
         parser.getValsFromKey( yaml_di, constants.NAMESPACE_KW, nspace_vals )
-        logger2.info("Namespaces extracted: {}".format(nspace_vals)) # Log (5)
+        logger.info("Namespaces extracted: {}".format(nspace_vals)) # Log (5)
         '''
         we are not going to process list of dicts
         '''
         nspace_vals        = [x_ for x_ in nspace_vals if isinstance( x_ , str ) ]
-        logger2.info("Filtered namespace values to include only strings: {}".format(nspace_vals)) # Log (6)
+        logger.info("Filtered namespace values to include only strings: {}".format(nspace_vals)) # Log (6)
         unique_nspace_vals =  list( np.unique( nspace_vals  ) )
-        logger2.info("Unique namespace values: {}".format(unique_nspace_vals)) # Log (7)
+        logger.info("Unique namespace values: {}".format(unique_nspace_vals)) # Log (7)
         if (len(unique_nspace_vals) == 1 ) and ( unique_nspace_vals[0] == constants.DEFAULT_KW  ):
-            logger2.warning("Default namespace detected in file: {}".format(path_scrpt)) # Log (8)
+            logger.warning("Default namespace detected in file: {}".format(path_scrpt)) # Log (8)
             key_lis = parser.keyMiner(yaml_di, constants.DEFAULT_KW)
-            logger2.info("Keys associated with the default namespace: {}".format(key_lis))  # Log (9)
+            logger.info("Keys associated with the default namespace: {}".format(key_lis))  # Log (9)
 
             if (isinstance( key_lis, list ) ):
                 if (len(key_lis) > 0 ) :
                     all_values = list( parser.getValuesRecursively(yaml_di)  )
-                    logger2.info("All values extracted from the YAML: {}".format(all_values))  # Log (10)
+                    logger.info("All values extracted from the YAML: {}".format(all_values))  # Log (10)
                     cnt += 1
 
                     # Lines for SARIF output
                     line_number = parser.show_line_for_paths(path_scrpt,constants.NAMESPACE_KW)
-                    logger2.info("Line numbers for default namespace occurrences: {}".format(line_number))  # Log (11)
+                    logger.info("Line numbers for default namespace occurrences: {}".format(line_number))  # Log (11)
                     for line in line_number:
                         result= Result(rule_id='SLIKUBE_UNLISTED_01',rule_index= 11, level='error',attachments = [] ,message=Message(text=" Use of Default Namespace"))
                         location = Location(physical_location=PhysicalLocation(artifact_location=ArtifactLocation(uri=path_scrpt),region = Region(start_line =line)))
                         result.locations = [location]
                         run.results.append(result)
-                        logger2.info("SARIF result added for line: {}".format(line))  # Log (12)
+                        logger.info("SARIF result added for line: {}".format(line))  # Log (12)
                     prop_value = constants.YAML_SKIPPING_TEXT
                     if ( constants.DEPLOYMENT_KW in all_values ) :
                         prop_value = constants.DEPLOYMENT_KW
                         lis.append( prop_value )
-                        logger2.info("Deployment keyword found and added to the list.")  # Log (13)
+                        logger.info("Deployment keyword found and added to the list.")  # Log (13)
                     elif ( constants.POD_KW in all_values ) :
                         prop_value = constants.POD_KW
                         lis.append( prop_value )
-                        logger2.info("Pod keyword found and added to the list.")  # Log (14)
+                        logger.info("Pod keyword found and added to the list.")  # Log (14)
                     else:
                         holder_ = []
                         parser.getValsFromKey(yaml_di, constants.KIND_KEY_NAME, holder_ )
-                        logger2.info("Kind values extracted: {}".format(holder_))  # Log (15)
+                        logger.info("Kind values extracted: {}".format(holder_))  # Log (15)
                         if ( constants.K8S_SERVICE_KW in holder_ ):
                             srv_val_li_ = []
                             parser.getValsFromKey( yaml_di, constants.K8S_APP_KW, srv_val_li_  )
-                            logger2.info("Service values extracted: {}".format(srv_val_li_))  # Log (16)
+                            logger.info("Service values extracted: {}".format(srv_val_li_))  # Log (16)
                             for srv_val in srv_val_li_:
                                 lis = graphtaint.mineServiceGraph( path_scrpt, yaml_di, srv_val )
-                                logger2.info("Service graph mined for value: {}".format(srv_val))  # Log (17)
+                                logger.info("Service graph mined for value: {}".format(srv_val))  # Log (17)
 
 
                     dic[ cnt ] = lis
-                    logger2.info("Final dictionary entry for default namespace: {}".format(dic[cnt]))  # Log (18)
+                    logger.info("Final dictionary entry for default namespace: {}".format(dic[cnt]))  # Log (18)
     # print(dic)
-    logger2.info("Scan for default namespace completed at {}".format(datetime.now()))  # Log (19)
+    logger.info("Scan for default namespace completed at {}".format(datetime.now()))  # Log (19)
     return dic
 
 '''
@@ -471,24 +471,25 @@ def scanForDefaultNamespace(path_scrpt):
 By: Demarco Guajardo
 '''
 def scanForResourceLimits(path_scrpt):
-    logger2.info("SARIF result added for line: {}".format(line)) # Log (1)
+    logger = giveMeLoggingObject()
+    logger.info("SARIF result added for line: {}".format("0")) # Log (1)
     dic, lis   = {}, []
     if ( parser.checkIfValidK8SYaml( path_scrpt )  ):
-        logger2.info("Valid Kubernetes YAML detected: {}".format(path_scrpt))  # Log (2)
+        logger.info("Valid Kubernetes YAML detected: {}".format(path_scrpt))  # Log (2)
         cnt = 0
         dict_as_list = parser.loadMultiYAML( path_scrpt )
-        logger2.info("Loaded YAML as a list of dictionaries.")  # Log (3)
+        logger.info("Loaded YAML as a list of dictionaries.")  # Log (3)
         yaml_di      = parser.getSingleDict4MultiDocs( dict_as_list )
-        logger2.info("Converted YAML list to a single dictionary.")  # Log (4)
+        logger.info("Converted YAML list to a single dictionary.")  # Log (4)
         temp_ls = []
         parser.getKeyRecursively(yaml_di, temp_ls)
-        logger2.info("Keys extracted: {}".format(temp_ls))  # Log (5)
+        logger.info("Keys extracted: {}".format(temp_ls))  # Log (5)
         '''
         if you are using `parser.getKeyRecursively` to get all keys , you need to do some trnasformation to get the key names
         as the output is a list of tuples so, `[(k1, v1), (k2, v2), (k3, v3)]`
         '''
         key_list = [ x_[0] for x_ in temp_ls  ]
-        logger2.info("Processed keys: {}".format(key_list))  # Log (6)
+        logger.info("Processed keys: {}".format(key_list))  # Log (6)
         '''
         get values for a key from the dict
         then check if at least one unique entry is kind:Pod
@@ -496,33 +497,33 @@ def scanForResourceLimits(path_scrpt):
         val_lis = []
         parser.getValsFromKey(yaml_di, constants.KIND_KEY_NAME, val_lis)
         kind_entries =  list( np.unique( val_lis ) )
-        logger2.info("Kind entries found: {}".format(kind_entries))  # Log (7)
+        logger.info("Kind entries found: {}".format(kind_entries))  # Log (7)
         if ( constants.POD_KW in kind_entries ):
             if ( (constants.CONTAINER_KW in key_list) and (constants.LIMITS_KW not in key_list ) and ( (constants.CPU_KW not in key_list)  or (constants.MEMORY_KW not in key_list) ) ):
-                logger2.warning("Missing resource limits detected in file: {}".format(path_scrpt))  # Log (8)
+                logger.warning("Missing resource limits detected in file: {}".format(path_scrpt))  # Log (8)
                 cnt += 1
                 # the line number for SARIF output should be the line number of the container spec
                 line_number = parser.show_line_for_paths(path_scrpt, constants.SPEC_KW)
-                logger2.info("Line numbers for missing resource limits: {}".format(line_number))  # Log (9)
+                logger.info("Line numbers for missing resource limits: {}".format(line_number))  # Log (9)
                 for line in line_number:
                     result= Result(rule_id='SLIKUBE_01',rule_index= 0, level='error',attachments = [] ,message=Message(text="  Absent Resource Limit"))
                     location = Location(physical_location=PhysicalLocation(artifact_location=ArtifactLocation(uri=path_scrpt),region = Region(start_line =line)))
                     result.locations = [location]
                     run.results.append(result)
-                    logger2.info("SARIF result added for line: {}".format(line))  # Log (10)
+                    logger.info("SARIF result added for line: {}".format(line))  # Log (10)
 
                 if( len(temp_ls) > 0 ):
                     all_values = list( parser.getValuesRecursively(yaml_di)  )
-                    logger2.info("All values extracted from the YAML: {}".format(all_values))  # Log (11)
+                    logger.info("All values extracted from the YAML: {}".format(all_values))  # Log (11)
                     # print(all_values)
                     prop_value = constants.YAML_SKIPPING_TEXT
                     if ( constants.POD_KW in all_values ) :
                         prop_value = constants.POD_KW
                         lis.append( prop_value )
-                        logger2.info("Pod keyword found and added to the list.")  # Log (12)
+                        logger.info("Pod keyword found and added to the list.")  # Log (12)
                 dic[ cnt ] = lis
     # print(dic)
-    logger2.info("Scan for resource limits completed at {}".format(datetime.now()))  # Log (13)
+    logger.info("Scan for resource limits completed at {}".format(datetime.now()))  # Log (13)
     return dic
 
 

@@ -11,8 +11,6 @@ import logging
 from datetime import datetime
 from myLogger import giveMeLoggingObject
 
-logger2 = giveMeLoggingObject()
-
 def getYAMLFiles(path_to_dir):
     valid_  = []
     for root_, dirs, files_ in os.walk( path_to_dir ):
@@ -59,18 +57,19 @@ def getMatchingTemplates(path2script, hierarchy_ls):
 #Forensics Implementation 1
 #Logging Author: Jack Piotrowski
 def getValidTaints(  lis_template_matches ):
+    logger = giveMeLoggingObject()
     '''
     provides a mapping between the key where the secret occurred and the
     files that re affected by teh key
     '''
-    logger2.info("Valid Taint Tracking Initiated...")
-    logger2.info("Mapping files affected by secret...")
-    logger2.info("Timestamp: {}".format(datetime.now()))
+    logger.info("Valid Taint Tracking Initiated...")
+    logger.info("Mapping files affected by secret...")
+    logger.info("Timestamp: {}".format(datetime.now()))
     taint_lis  = []
     for match in lis_template_matches:
         script_name, helm_string = match
         inceptor = helm_string.split( constants.DOT_SYMBOL )[-1]
-        logger2.info("Inceptor: {} Script Name: {}".format(inceptor, script_name))
+        logger.info("Inceptor: {} Script Name: {}".format(inceptor, script_name))
         taint_lis.append( (inceptor, script_name) )
     return taint_lis
 
