@@ -55,6 +55,7 @@ run.tool.driver.rules.append(slikube_UNLISTED_04)
 slikube_UNLISTED_05 =  ReportingDescriptor(id='SLIKUBE_UNLISTED_05',name=" Use of unconfined seccomp profile",short_description=Message(text=" Use Seccomp security profiles"),full_description= Message( text= "  Use Seccomp security profiles"),help= Message(text= " Use Seccomp security profiles"), default_configuration= ReportingConfiguration(level="error"))
 run.tool.driver.rules.append(slikube_UNLISTED_05)
 
+#Adding comment for Bandit testing
 
 '''Following lists are used to check the statistics of analyzed files such as invalid, weird and valid k8s and helm charts'''
 
