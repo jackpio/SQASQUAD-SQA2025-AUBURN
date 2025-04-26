@@ -472,7 +472,7 @@ By: Demarco Guajardo
 '''
 def scanForResourceLimits(path_scrpt):
     logger = giveMeLoggingObject()
-    logger.info("SARIF result added for line: {}".format("0")) # Log (1)
+    logger.info("SARIF result added.") # Log (1)
     dic, lis   = {}, []
     if ( parser.checkIfValidK8SYaml( path_scrpt )  ):
         logger.info("Valid Kubernetes YAML detected: {}".format(path_scrpt))  # Log (2)

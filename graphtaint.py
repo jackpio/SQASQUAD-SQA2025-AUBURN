@@ -64,7 +64,7 @@ def getValidTaints(  lis_template_matches ):
     '''
     logger.info("Valid Taint Tracking Initiated...")
     logger.info("Mapping files affected by secret...")
-    logger.info("Timestamp: {}".format(datetime.now()))
+    logger.info("Valid Taint Tracking Process Timestamp: {}".format(datetime.now()))
     taint_lis  = []
     for match in lis_template_matches:
         script_name, helm_string = match
